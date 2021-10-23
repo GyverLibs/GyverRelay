@@ -125,6 +125,7 @@ void loop() {
 <a id="versions"></a>
 ## Версии
 - v2.1 - исправлена getResultTimer
+- v2.2 - улучшен и упрощён алгоритм
 
 <a id="feedback"></a>
 ## Баги и обратная связь

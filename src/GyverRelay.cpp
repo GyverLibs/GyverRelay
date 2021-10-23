@@ -1,47 +1,37 @@
 #include "GyverRelay.h"
 
-GyverRelay::GyverRelay(boolean direction) {
-    _direction = direction;
-    output = !_direction;   // выключить реле сразу
+GyverRelay::GyverRelay(GR_dir dir = REVERSE) {
+    _dir = dir;
+    output = !_dir;   // выключить реле сразу
 }
 
-void GyverRelay::setDirection(boolean dir) {
-    _direction = dir;
-}
-
-int signum(float val) {
-    return ((val > 0) ? 1 : ((val < 0) ? -1 : 0));
+void GyverRelay::setDirection(GR_dir dir) {
+    _dir = dir;
 }
 
 // вернёт выход, принимает время итерации в секундах
-boolean GyverRelay::compute(float dt) {
+bool GyverRelay::compute(float dt) {
     float signal;
-    if (dt > 0) {
-        float rate = (input - prevInput) / dt;    // производная от величины (величина/секунду)
+    if (dt != 0 && k != 0) {
+        signal = input + (input - prevInput) * k / dt;
         prevInput = input;
-        signal = input + rate * k;
-    } else {
-        signal = input;
-    }
-
-    // жуткая функция реле из лекций по ТАУ
-    int8_t F = (signum(signal - setpoint - hysteresis / 2) + signum(signal - setpoint + hysteresis / 2)) / 2;
-
-    if (F == 1) output = !_direction;
-    else if (F == -1) output = _direction;
+    } else signal = input;
+    
+    if (signal < (setpoint - hysteresis / 2)) output = _dir;
+    else if (signal > (setpoint + hysteresis / 2)) output = !_dir;
     return output;
 }
 
-boolean GyverRelay::getResult() {
-    GyverRelay::compute((millis() - prevTime) / 1000.0f);
+bool GyverRelay::getResult() {
+    compute((millis() - prevTime) / 1000.0f);
     prevTime = millis();
     return output;
 }
 
-boolean GyverRelay::getResultTimer() {
+bool GyverRelay::getResultTimer() {
     if (millis() - prevTime > dT) {
         prevTime = millis();
-        GyverRelay::compute((float)dT / 1000);
+        compute(dT / 1000.0);
     }
     return output;
 }

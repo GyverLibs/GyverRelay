@@ -13,32 +13,35 @@
 
     Версии:
     v2.1 - исправлена getResultTimer
+    v2.2 - улучшен и упрощён алгоритм
 */
 
-#ifndef GyverRelay_h
-#define GyverRelay_h
+#ifndef _GyverRelay_h
+#define _GyverRelay_h
 #include <Arduino.h>
 
-#define NORMAL 0
-#define REVERSE 1
+enum GR_dir {
+    NORMAL,
+    REVERSE,
+};
 
 class GyverRelay {
 public:
     // принимает установку, ширину гистерезиса, направление (NORMAL, REVERSE)
     // NORMAL - включаем нагрузку при переходе через значение снизу (пример: охлаждение)
     // REVERSE - включаем нагрузку при переходе через значение сверху (пример: нагрев)
-    GyverRelay(boolean direction = REVERSE);
+    GyverRelay(GR_dir dir);
     
     // расчёт возвращает состояние для управляющего устройства (реле, транзистор) (1 вкл, 0 выкл)
-    boolean compute(float dt = 0);		// моментальный расчёт. Принимает dt в секундах для режима с ОС
-    boolean getResult();				// моментальный расчёт. Встроенный таймер для режима с ОС
-    boolean getResultTimer();			// расчёт по встроенному таймеру
+    bool compute(float dt = 0);		    // моментальный расчёт. Принимает dt в секундах для режима с ОС
+    bool getResult();				    // моментальный расчёт. Встроенный таймер для режима с ОС
+    bool getResultTimer();			    // расчёт по встроенному таймеру
 
-    void setDirection(boolean dir);		// направление регулирования (NORMAL, REVERSE)
+    void setDirection(GR_dir dir);		// направление регулирования (NORMAL, REVERSE)
     
     float input = 0;					// сигнал с датчика (например температура, которую мы регулируем)
     float setpoint = 0;					// заданная величина, которую должен поддерживать регулятор (температура)
-    boolean output = 0;					// выход регулятора (0 или 1)
+    bool output = 0;					// выход регулятора (0 или 1)
     
     float hysteresis = 0;				// ширина окна гистерезиса
     float k = 0;						// коэффициент усиления	по скорости (по умолч. 0)	
@@ -47,6 +50,6 @@ public:
 private:	
     uint32_t prevTime = 0;
     float prevInput = 0.0;
-    boolean _direction = false;
+    GR_dir _dir = REVERSE;
 };
 #endif
